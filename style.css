@@ -1,0 +1,160 @@
+html,
+body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: #ef3e3e;
+  display: flex;
+  flex-direction: row;
+  color: white;
+  font-family: "Happy Monkey", system-ui;
+  font-size: 20px;
+}
+
+.pokemon-go {
+  width: 100%;
+}
+
+.pokedex {
+  position: absolute;
+  z-index: 1000;
+  top: 30px;
+  right: 30px;
+  bottom: 30px;
+  width: 20%;
+  border-radius: 10px;
+  background-color: #ef3e3e;
+}
+
+#map {
+  height: 100%;
+}
+
+.buttons{
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#geolocation, #sound {
+  position: relative;
+  height: 30px;
+  width: 30px;
+  background-color: #2981ca;
+  border-radius: 50px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.buttons img {
+  width: 100%;
+}
+
+.popup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.popup img {
+  width: 40px;
+  cursor: pointer;
+}
+
+.pokedex {
+  padding: 0;
+}
+
+.pokedex-hidden {
+  display: none;
+}
+
+#close {
+  height: 40px;
+  cursor: pointer;
+}
+
+#detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.picture {
+  height: 250px;
+}
+
+.type {
+  height: 3rem;
+}
+
+#evolution {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin: 0 3rem;
+  gap: 0.5rem;
+}
+
+.pokemon {
+  background-color: #292929;
+  height: 3.5rem;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  gap: 1rem;
+}
+
+.pokemon p:nth-child(2) {
+  flex: 1;
+}
+
+.pokemon img {
+  height: 3rem;
+}
+
+.connexion-hide {
+  display: none !important;
+}
+
+#connexion {
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(100, 100, 100, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+#connexion .form {
+  width: 30%;
+  height: 35%;
+  padding: 30px;
+  border-radius: 30px;
+  background-color: #353434;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#connexion .form img {
+  border-radius: 20px;
+  width: 100%;
+}
