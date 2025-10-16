@@ -74,7 +74,6 @@ function getLayer(layerNumber) {
     case 20:
       return layerGroupPokemon20;
   }
-  console.log("boum");
 }
 
 // Fonction pour générer la carte
@@ -110,7 +109,7 @@ function onPosition(position_obj) {
 }
 
 function showCurrentPosition() {
-  map.setView([lat, long], 16);
+  map.setView([lat, long], 18);
 }
 
 function createPokemons() {
@@ -144,11 +143,11 @@ function createPokemons() {
           const marker = new L.marker(
             [
               Math.random() > 0.5
-                ? lat + Math.random() / 200
-                : lat - Math.random() / 200,
+                ? lat + Math.random() / 600
+                : lat - Math.random() / 600,
               Math.random() > 0.5
-                ? long + Math.random() / 200
-                : long - Math.random() / 200,
+                ? long + Math.random() / 600
+                : long - Math.random() / 600,
             ],
             { icon: myIcon }
           );
@@ -202,12 +201,16 @@ function showDetails(pokemonId) {
     .then((pokemon) => {
       const detail = document.getElementById("detail");
       detail.innerHTML = `
-        <p>Pokémon capturé !</p>
+        <h3 class="catch">Pokémon capturé !</h3>
+        <div class="pokeDetail">
         <p class="number">n°${pokemon.pokedexId}</p>
         <img class="picture" src="${pokemon.image}">
-        <h1 class="name">${pokemon.name}</h1>
-        <p>Type${pokemon.apiTypes.length > 1 ? "s" : ""}</p>
-        <div id="types"></div>
+        <h2 class="name">${pokemon.name}</h2>
+        </div>
+        <div class="types">
+          <p>Type${pokemon.apiTypes.length > 1 ? "s" : ""}</p>
+          <div id="types"></div>
+        </div>
         `;
 
       const types = document.getElementById("types");
@@ -234,8 +237,10 @@ function showDetails(pokemonId) {
               pokemonDiv.id = `show-evol-${pokemonEvolution.pokedexId}`;
               pokemonDiv.className = "pokemon";
               pokemonDiv.innerHTML = `
+              <div class="evolDetail">
               <p>${pokemonEvolution.pokedexId}.</p>
               <p>${pokemonEvolution.name}<p>
+              </div>
               <img src="${pokemonEvolution.image}">`;
 
               evolutionDiv.appendChild(pokemonDiv);
