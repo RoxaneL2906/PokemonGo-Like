@@ -185,9 +185,16 @@ function catchPokemon(pokemonId, layerId) {
     capturedPokemon.push(pokemonId);
     localStorage.setItem("pokemons-" + user, JSON.stringify(capturedPokemon));
 
-    // Affichage de la pokédex avec infos SI capturé
+    // Affichage du pokédex avec infos SI capturé
     const pokedex = document.getElementById("pokedex");
     pokedex.classList.remove("pokedex-hidden");
+
+    // Condition pour fermer le pokédex automatiquement en responsive
+    if (window.matchMedia("(max-width: 810px)").matches) {
+      setTimeout(() => {
+        pokedex.classList.add("pokedex-hidden");
+      }, 2000);
+    }
   }
   // Fais disparaitre le pokémon
   const layer = getLayer(layerId);
