@@ -1,4 +1,3 @@
-
 // Création de la carte avec Leaflet
 const map = L.map("map");
 
@@ -289,10 +288,9 @@ function initPage() {
       JSON.parse(localStorage.getItem("pokemons-" + user)) ?? [];
   });
 
-
   // Musique d'ambiance en fond, lecture automatique avec possibilité de mettre en pause
-  const backgroundMusic = document.getElementById("background-music")
-  const soundButton = document.getElementById("sound")
+  const backgroundMusic = document.getElementById("background-music");
+  const soundButton = document.getElementById("sound");
   soundButton.addEventListener("click", () => {
     if (sound) {
       sound = false;
@@ -303,9 +301,50 @@ function initPage() {
       soundButton.children[0].src = "assets/icons/Speaker_Icon.svg";
       backgroundMusic.play();
     }
-  })
-}
+  });
 
+  // Boutons liés au computer
+  const computerButton = document.getElementById("computer");
+  const computerPopup = document.getElementById("computer-popup");
+  const closeComputer = document.getElementById("close-computer");
+  const capturedList = document.getElementById("captured-list");
+
+  // Ouvrir le computer
+  computerButton.addEventListener("click", () => {
+    // Récupère les pokémon du localStorage
+    const pokemons = JSON.parse(localStorage.getItem("pokemons-" + user)) ?? [];
+    capturedList.innerHTML = "";
+
+    if (pokemons.length == 0) {
+      capturedList.innerHTML = "<p>Aucun pokémon capturé pour le moment.</p>";
+    } else {
+      // Du plus récent au plus ancien
+      const reversed = [...pokemons].reverse();
+
+      reversed.forEach((pokedexId) => {
+        fetch(`https://pokebuildapi.fr/api/v1/pokemon/${pokedexId}`)
+          .then((response) => response.json())
+          .then((pokemon) => {
+            const div = document.createElement("div");
+            div.className = "captured-pokemon";
+            div.innerHTML = `
+            <img src="${pokemon.image}" alt="${pokemon.name}">
+            <div>
+              <p><strong>${pokemon.name}</strong></p>
+            </div>
+          `;
+            capturedList.appendChild(div);
+          });
+      });
+    }
+
+    computerPopup.classList.remove("computer-hidden");
+  });
+  // Fermer le PC Pokémon
+  closeComputer.addEventListener("click", () => {
+    computerPopup.classList.add("computer-hidden");
+  });
+}
 
 generateMap();
 initPage();
