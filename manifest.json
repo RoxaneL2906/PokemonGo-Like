@@ -1,0 +1,21 @@
+{
+  "short_name": "PokeGo",
+  "name": "PokemonGo-Like",
+  "icons": [
+    {
+      "src": "assets/icon-1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "https://roxanel2906.github.io/PokemonGo-Like/",
+  "background_color": "#ffffff",
+  "theme_color": "#2981ca",
+  "display": "standalone",
+  "scope": "/"
+}
