@@ -27,8 +27,10 @@ let lat = 0;
 let long = 0;
 let user = "";
 let sound = true;
-
+let userMarker;
 let capturedPokemon = [];
+
+let isMobile = false;
 
 function getLayer(layerNumber) {
   switch (layerNumber) {
@@ -83,42 +85,71 @@ function generateMap() {
 // Fonction pour obtenir la position actuelle de l'utilisateur
 function getPostion() {
   navigator.geolocation.getCurrentPosition(onPosition);
-  // On pourrait aussi utiliser cette méthode pour surveiller la position en temps réel :
-  //navigator.geolocation.watchPosition(onPosition,null,{enableHighAccuracy:true});
 }
 
 // Fonction appelée quand la position de l'utilisateur est obtenue
 function onPosition(position_obj) {
   lat = position_obj.coords.latitude;
   long = position_obj.coords.longitude;
-  console.log(lat, long);
 
   // Bouton pour recentrer la map sur l'utilisateur
   const geolocationButton = document.getElementById("geolocation");
   geolocationButton.addEventListener("click", showCurrentPosition);
 
-  // Indicateur de la position de l'utilisateur
-  const marker = L.marker([lat, long]);
-  marker.addTo(map);
-
   // On centre la carte sur la position de l'utilisateur
   showCurrentPosition();
+
   // Génère de nouveaux pokémon toutes les 5 secondes
   setInterval(createPokemons, 5000);
+
+  // Met à jour la position du joueur
+  navigator.geolocation.watchPosition(updatePosition);
 }
 
 function showCurrentPosition() {
   map.setView([lat, long], 18);
 }
 
+function updatePosition(position_obj) {
+  lat = position_obj.coords.latitude;
+  long = position_obj.coords.longitude;
+
+  // Si le marker de l'utilisateur existe déjà, on le met à jour
+  const myIcon = L.icon({
+    iconUrl: "assets/images/Roxanne_OD.png",
+    iconSize: [75, 75]
+  });
+
+  if (userMarker) {
+    userMarker.setLatLng([lat, long]);
+  } else {
+    // Sinon, on crée un nouveau marker
+    userMarker = L.marker([lat, long], { icon: myIcon }).addTo(map);
+  }
+
+  map.setView([lat, long], map.getZoom(), {
+    animate: true,
+    duration: 0.5,
+  });
+}
+
 function createPokemons() {
   // Détermine combien de pokémon seront générés de manière aléatoire (entre 1 et 5)
-  const spawn = Math.floor(Math.random() * 5 + 1);
+  let spawn;
+  if (isMobile) {
+    spawn = Math.floor(Math.random() * 2 + 1);
+  } else {
+    spawn = Math.floor(Math.random() * 5 + 1);
+  }
 
   // Layer des pokémon à modifier
   let layerNumbers = [];
   for (let i = 0; i < spawn; i++) {
-    layerNumbers.push(Math.floor(Math.random() * 20 + 1));
+    if (isMobile) {
+      layerNumbers.push(Math.floor(Math.random() * 5 + 1));
+    } else {
+      layerNumbers.push(Math.floor(Math.random() * 20 + 1));
+    }
   }
 
   layerNumbers.forEach((layerNumber) => {
@@ -139,17 +170,28 @@ function createPokemons() {
             popupAnchor: [0, -30],
           });
 
+          let dividerWidth;
+          let dividerHeight;
+          if (isMobile) {
+            dividerWidth = 600;
+            dividerHeight = 2000;
+          } else {
+            dividerWidth = 800;
+            dividerHeight = 300;
+          }
+
           const marker = new L.marker(
             [
               Math.random() > 0.5
-                ? lat + Math.random() / 600
-                : lat - Math.random() / 600,
+                ? lat + Math.random() / dividerWidth
+                : lat - Math.random() / dividerWidth,
               Math.random() > 0.5
-                ? long + Math.random() / 600
-                : long - Math.random() / 600,
+                ? long + Math.random() / dividerHeight
+                : long - Math.random() / dividerHeight,
             ],
             { icon: myIcon }
           );
+
           marker.on("click", () => {
             showDetails(pokemon.pokedexId);
           });
@@ -194,6 +236,12 @@ function catchPokemon(pokemonId, layerId) {
         pokedex.classList.add("pokedex-hidden");
       }, 2000);
     }
+  } else {
+    const escapePopup = document.getElementById("escape-popup");
+    escapePopup.classList.remove("escape-hidden");
+    setTimeout(() => {
+      escapePopup.classList.add("escape-hidden");
+    }, 1000);
   }
   // Fais disparaitre le pokémon
   const layer = getLayer(layerId);
@@ -339,13 +387,25 @@ function initPage() {
     }
 
     computerPopup.classList.remove("computer-hidden");
+
+    const pokedex = document.getElementById("pokedex");
+    pokedex.classList.add("pokedex-hidden");
   });
+
   // Fermer le PC Pokémon
   closeComputer.addEventListener("click", () => {
     computerPopup.classList.add("computer-hidden");
   });
 }
 
+function getMobileType() {
+  const screenwidth = window.screen.width;
+  if (screenwidth < 1200) {
+    isMobile = true;
+  }
+}
+
+getMobileType();
 generateMap();
 initPage();
 getPostion();

@@ -3,6 +3,7 @@ body {
   height: 100%;
   padding: 0;
   margin: 0;
+  overscroll-behavior: contain;
 }
 
 body {
@@ -117,8 +118,10 @@ body {
 #evolution {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   margin: 0 1.5rem;
+  max-height: 210px;
+  overflow: auto;
+  gap: 0.25rem;
 }
 
 .pokemon {
@@ -196,12 +199,18 @@ body {
 }
 
 .computer-head {
+  width: 100%;
+  padding: 0.5rem;
   display: flex;
-  justify-content: center;
   align-items: center;
   background-color: rgb(255, 100, 100);
   position: sticky;
   top: 0;
+}
+
+.computer-head h2 {
+  margin: auto;
+  padding-right: 40px;
 }
 
 #captured-list {
@@ -230,6 +239,27 @@ body {
 }
 
 .computer-hidden {
+  display: none;
+}
+
+#escape-popup {
+  color: #2981ca;
+  position: absolute;
+  z-index: 1000;
+  top: 30px;
+  left: 0;
+  right: 0;
+}
+
+#escape-popup h2 {
+  background-color: rgba(255, 120, 120, 0.9);
+  padding: 1rem;
+  margin: auto;
+  width: fit-content;
+  justify-self: center;
+}
+
+.escape-hidden {
   display: none;
 }
 
