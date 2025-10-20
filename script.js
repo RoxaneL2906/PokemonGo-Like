@@ -116,8 +116,8 @@ function updatePosition(position_obj) {
 
   // Si le marker de l'utilisateur existe déjà, on le met à jour
   const myIcon = L.icon({
-    iconUrl: "assets/images/Roxanne_OD.png",
-    iconSize: [75, 75]
+    iconUrl: "assets/images/players/Roxanne_OD.png",
+    iconSize: [60, 60]
   });
 
   if (userMarker) {
@@ -163,7 +163,7 @@ function createPokemons() {
       fetch(`https://pokebuildapi.fr/api/v1/pokemon/${pokedexId}`)
         .then((response) => response.json())
         .then((pokemon) => {
-          var myIcon = L.icon({
+          let myIcon = L.icon({
             iconUrl: pokemon.sprite,
             iconSize: [100, 100],
             iconAnchor: [50, 50],
