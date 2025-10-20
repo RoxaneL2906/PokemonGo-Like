@@ -83,7 +83,7 @@ function generateMap() {
 }
 
 // Fonction pour obtenir la position actuelle de l'utilisateur
-function getPostion() {
+function getCurrentPostion() {
   navigator.geolocation.getCurrentPosition(onPosition);
 }
 
@@ -91,10 +91,6 @@ function getPostion() {
 function onPosition(position_obj) {
   lat = position_obj.coords.latitude;
   long = position_obj.coords.longitude;
-
-  // Bouton pour recentrer la map sur l'utilisateur
-  const geolocationButton = document.getElementById("geolocation");
-  geolocationButton.addEventListener("click", showCurrentPosition);
 
   // On centre la carte sur la position de l'utilisateur
   showCurrentPosition();
@@ -114,12 +110,16 @@ function updatePosition(position_obj) {
   lat = position_obj.coords.latitude;
   long = position_obj.coords.longitude;
 
-  // Si le marker de l'utilisateur existe déjà, on le met à jour
+  createPlayer();
+}
+
+function createPlayer() {
   const myIcon = L.icon({
     iconUrl: "assets/images/players/Roxanne_OD.png",
-    iconSize: [60, 60]
+    iconSize: [50, 50],
   });
 
+  // Si le marker de l'utilisateur existe déjà, on le met à jour
   if (userMarker) {
     userMarker.setLatLng([lat, long]);
   } else {
@@ -131,6 +131,14 @@ function updatePosition(position_obj) {
     animate: true,
     duration: 0.5,
   });
+}
+
+function loadUserPokemons() {
+  capturedPokemon = JSON.parse(localStorage.getItem("pokemons-" + user)) ?? [];
+}
+
+function saveUserPokemons() {
+  localStorage.setItem("pokemons-" + user, JSON.stringify(capturedPokemon));
 }
 
 function createPokemons() {
@@ -163,12 +171,22 @@ function createPokemons() {
       fetch(`https://pokebuildapi.fr/api/v1/pokemon/${pokedexId}`)
         .then((response) => response.json())
         .then((pokemon) => {
-          let myIcon = L.icon({
-            iconUrl: pokemon.sprite,
-            iconSize: [100, 100],
-            iconAnchor: [50, 50],
-            popupAnchor: [0, -30],
-          });
+          let myIcon;
+          if (!isMobile) {
+            myIcon = L.icon({
+              iconUrl: pokemon.sprite,
+              iconSize: [100, 100],
+              iconAnchor: [50, 50],
+              popupAnchor: [0, -30],
+            });
+          } else {
+            myIcon = L.icon({
+              iconUrl: pokemon.sprite,
+              iconSize: [75, 75],
+              iconAnchor: [37.5, 37.5],
+              popupAnchor: [0, -30],
+            });
+          }
 
           let dividerWidth;
           let dividerHeight;
@@ -202,7 +220,7 @@ function createPokemons() {
                 <img id="pokeball" data-layer="${layerNumber}" data-pokemon="${
                 pokemon.pokedexId
               }" src="${
-                capturedPokemon.includes(pokemon.pokedexId)
+                capturedPokemon.some((p) => p.pokedexId === pokemon.pokedexId)
                   ? "assets/icons/pokeball-rouge.svg"
                   : "assets/icons/pokeball-gray.svg"
               }">
@@ -223,17 +241,22 @@ function catchPokemon(pokemonId, layerId) {
 
   if (captured) {
     // Si capturé, on ajoute le pokémon au tableau des pokémon capturés (localStorage)
-    capturedPokemon.push(pokemonId);
-    localStorage.setItem("pokemons-" + user, JSON.stringify(capturedPokemon));
+    capturedPokemon.push({
+      id: crypto.randomUUID(),
+      pokedexId: pokemonId,
+      date: new Date(),
+    });
+
+    saveUserPokemons();
 
     // Affichage du pokédex avec infos SI capturé
-    const pokedex = document.getElementById("pokedex");
-    pokedex.classList.remove("pokedex-hidden");
+    const capture = document.getElementById("capture");
+    capture.classList.remove("capture-hidden");
 
     // Condition pour fermer le pokédex automatiquement en responsive
     if (window.matchMedia("(max-width: 810px)").matches) {
       setTimeout(() => {
-        pokedex.classList.add("pokedex-hidden");
+        capture.classList.add("capture-hidden");
       }, 2000);
     }
   } else {
@@ -249,13 +272,24 @@ function catchPokemon(pokemonId, layerId) {
 }
 
 //
-function showDetails(pokemonId) {
+function showDetails(pokemonId, isPokedex, id) {
+  let prefix;
+  if (isPokedex) {
+    prefix = "pokedex-";
+  } else {
+    prefix = "capture-";
+  }
+  const detail = document.getElementById(prefix + "detail");
+  detail.innerHTML = "";
+
   fetch(`https://pokebuildapi.fr/api/v1/pokemon/${pokemonId}`)
     .then((response) => response.json())
     .then((pokemon) => {
-      const detail = document.getElementById("detail");
-      detail.innerHTML = `
-        <h3 class="catch">Pokémon capturé !</h3>
+      if (!isPokedex) {
+        detail.innerHTML += '<h3 class="catch">Pokémon capturé !</h3>';
+      }
+
+      detail.innerHTML += `
         <div class="pokeDetail">
         <p class="number">n°${pokemon.pokedexId}</p>
         <img class="picture" src="${pokemon.image}">
@@ -263,16 +297,16 @@ function showDetails(pokemonId) {
         </div>
         <div class="types">
           <p>Type${pokemon.apiTypes.length > 1 ? "s" : ""}</p>
-          <div id="types"></div>
+          <div id="${prefix}types"></div>
         </div>
         `;
 
-      const types = document.getElementById("types");
+      const types = document.getElementById(prefix + "types");
       pokemon.apiTypes.forEach(function (type) {
         types.innerHTML += `<img class="type" src="${type.image}">`;
       });
 
-      const evolutionDiv = document.getElementById("evolution");
+      const evolutionDiv = document.getElementById(prefix + "evolution");
 
       let evolutionCount = 0;
       evolutionDiv.innerHTML = "";
@@ -303,12 +337,42 @@ function showDetails(pokemonId) {
           });
       });
     });
+
+  if (isPokedex && id) {
+    releasePokemon(id);
+  }
+}
+
+function releasePokemon(id) {
+  const release = document.getElementById("release");
+  release.addEventListener("click", () => {
+    const confirm = document.getElementById("pokedex-release");
+    confirm.classList.remove("pokedex-release-hidden");
+
+    const confirmYes = document.getElementById("pokedex-release-yes");
+    confirmYes.addEventListener("click", () => {
+      capturedPokemon = capturedPokemon.filter((p) => p.id != id);
+      saveUserPokemons();
+      confirm.classList.add("pokedex-release-hidden");
+      const pokedex = document.getElementById("pokedex");
+      pokedex.classList.add("pokedex-hidden");
+
+      const computerPopup = document.getElementById("computer-popup");
+      computerPopup.classList.remove("computer-hidden");
+      loadComputerList();
+    });
+
+    const confirmNo = document.getElementById("pokedex-release-no");
+    confirmNo.addEventListener("click", () => {
+      confirm.classList.add("pokedex-release-hidden");
+    });
+  });
 }
 
 function initPage() {
   map.on("popupopen", () => {
-    const pokedex = document.getElementById("pokedex");
-    pokedex.classList.add("pokedex-hidden");
+    const capture = document.getElementById("capture");
+    capture.classList.add("capture-hidden");
 
     const pokeball = document.getElementById("pokeball");
     const pokemonId = Number(pokeball.dataset.pokemon);
@@ -318,10 +382,18 @@ function initPage() {
     });
   });
 
-  const close = document.getElementById("close");
-  close.addEventListener("click", () => {
+  const captureClose = document.getElementById("capture-close");
+  captureClose.addEventListener("click", () => {
+    const capture = document.getElementById("capture");
+    capture.classList.add("capture-hidden");
+  });
+
+  const pokedexClose = document.getElementById("pokedex-close");
+  pokedexClose.addEventListener("click", () => {
     const pokedex = document.getElementById("pokedex");
     pokedex.classList.add("pokedex-hidden");
+    const computerPopup = document.getElementById("computer-popup");
+    computerPopup.classList.remove("computer-hidden");
   });
 
   const userForm = document.getElementById("user-form");
@@ -332,8 +404,7 @@ function initPage() {
     const popup = document.getElementById("connexion");
     popup.classList.add("connexion-hide");
 
-    capturedPokemon =
-      JSON.parse(localStorage.getItem("pokemons-" + user)) ?? [];
+    loadUserPokemons();
   });
 
   // Musique d'ambiance en fond, lecture automatique avec possibilité de mettre en pause
@@ -360,42 +431,67 @@ function initPage() {
   // Ouvrir le computer
   computerButton.addEventListener("click", () => {
     // Récupère les pokémon du localStorage
-    const pokemons = JSON.parse(localStorage.getItem("pokemons-" + user)) ?? [];
     capturedList.innerHTML = "";
 
-    if (pokemons.length == 0) {
+    if (capturedPokemon.length == 0) {
       capturedList.innerHTML = "<p>Aucun pokémon capturé pour le moment.</p>";
     } else {
-      // Du plus récent au plus ancien
-      const reversed = [...pokemons].reverse();
-
-      reversed.forEach((pokedexId) => {
-        fetch(`https://pokebuildapi.fr/api/v1/pokemon/${pokedexId}`)
-          .then((response) => response.json())
-          .then((pokemon) => {
-            const div = document.createElement("div");
-            div.className = "captured-pokemon";
-            div.innerHTML = `
-            <img src="${pokemon.image}" alt="${pokemon.name}">
-            <div>
-              <p><strong>${pokemon.name}</strong></p>
-            </div>
-          `;
-            capturedList.appendChild(div);
-          });
-      });
+      loadComputerList();
     }
 
     computerPopup.classList.remove("computer-hidden");
-
-    const pokedex = document.getElementById("pokedex");
-    pokedex.classList.add("pokedex-hidden");
+    const capture = document.getElementById("capture");
+    capture.classList.add("capture-hidden");
   });
 
   // Fermer le PC Pokémon
   closeComputer.addEventListener("click", () => {
     computerPopup.classList.add("computer-hidden");
   });
+}
+
+function loadComputerList() {
+  const capturedList = document.getElementById("captured-list");
+  capturedList.innerHTML = "";
+
+  // Du plus récent au plus ancien
+  const sortByDate = capturedPokemon.sort(
+    (a, b) => Date.parse(b.date) - Date.parse(a.date)
+  );
+  sortByDate.forEach((p) => {
+    loadComputer(p);
+  });
+}
+
+function loadComputer(p) {
+  const div = document.createElement("div");
+  div.className = "captured-pokemon";
+  div.innerHTML = `
+            <img id="img-${p.id}">
+            <div>
+              <p id="name-${p.id}"></p>
+            </div>
+            `;
+  const capturedList = document.getElementById("captured-list");
+  capturedList.appendChild(div);
+
+  div.addEventListener("click", () => {
+    const computerPopup = document.getElementById("computer-popup");
+    computerPopup.classList.add("computer-hidden");
+    const pokedex = document.getElementById("pokedex");
+    pokedex.classList.remove("pokedex-hidden");
+
+    showDetails(p.pokedexId, true, p.id);
+  });
+
+  fetch(`https://pokebuildapi.fr/api/v1/pokemon/${p.pokedexId}`)
+    .then((response) => response.json())
+    .then((pokemon) => {
+      const img = document.getElementById("img-" + p.id);
+      img.src = pokemon.image;
+      const name = document.getElementById("name-" + p.id);
+      name.innerText = pokemon.name;
+    });
 }
 
 function getMobileType() {
@@ -405,7 +501,14 @@ function getMobileType() {
   }
 }
 
+function initGeolocationButton() {
+  // Bouton pour recentrer la map sur l'utilisateur
+  const geolocationButton = document.getElementById("geolocation");
+  geolocationButton.addEventListener("click", showCurrentPosition);
+}
+
 getMobileType();
 generateMap();
+initGeolocationButton();
 initPage();
-getPostion();
+getCurrentPostion();
