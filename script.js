@@ -403,28 +403,34 @@ function releasePokemon(id, name) {
 
 function initPage() {
   map.on("popupopen", () => {
+    console.log("ça passe");
     const capture = document.getElementById("capture");
     capture.classList.add("capture-hidden");
 
-    const bag = document.getElementById("bag");
-    bag.addEventListener("click", () => {
-      const bagMenu = document.getElementById("bag-menu");
-      bagMenu.classList.remove("bag-hidden");
-      const menu = document.getElementById("popup-menu");
-      menu.classList.add("menu-hidden");
-    });
+    const bags = document.querySelectorAll("#bag");
+    bags.forEach((bag) => {
+      bag.addEventListener("click", () => {
+        const bagMenu = document.getElementById("bag-menu");
+        bagMenu.classList.remove("bag-hidden");
+        const menu = document.getElementById("popup-menu");
+        menu.classList.add("menu-hidden");
+      });
 
-    let pokeballs = [];
-    pokeballs.push(document.getElementById("pokeball"));
-    pokeballs.push(document.getElementById("superball"));
-    pokeballs.push(document.getElementById("hyperball"));
+      let balls = [];
+      const pokeballs = document.querySelectorAll("#pokeball")
+      pokeballs.forEach((b) => balls.push(b))
+      const superballs = document.querySelectorAll("#superball")
+      superballs.forEach((b) => balls.push(b))
+      const hyperballs = document.querySelectorAll("#hyperball")
+      hyperballs.forEach((b) => balls.push(b))
 
-    pokeballs.forEach((p) => {
-      const pokemonId = Number(p.dataset.pokemon);
-      const layerId = Number(p.dataset.layer);
-      const pokeballType = Number(p.dataset.pokeball);
-      p.addEventListener("click", () => {
-        catchPokemon(pokemonId, layerId, pokeballType);
+      balls.forEach((b) => {
+        const pokemonId = Number(b.dataset.pokemon);
+        const layerId = Number(b.dataset.layer);
+        const pokeballType = Number(b.dataset.pokeball);
+        b.addEventListener("click", () => {
+          catchPokemon(pokemonId, layerId, pokeballType);
+        });
       });
     });
   });
