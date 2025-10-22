@@ -217,14 +217,28 @@ function createPokemons() {
           marker
             .bindPopup(
               `<div class="popup">
-                <img id="pokeball" data-layer="${layerNumber}" data-pokemon="${
+                <div id="popup-menu">
+                  <img id="bag" src="assets/icons/bag.png">
+                  <p>${pokemon.name}</p>
+                  <img id="owned" src="${
+                    capturedPokemon.some(
+                      (p) => p.pokedexId === pokemon.pokedexId
+                    )
+                      ? "assets/icons/pokeball-rouge.svg"
+                      : "assets/icons/pokeball-gray.svg"
+                  }">
+                </div>
+                <div id="bag-menu" class="bag-hidden">
+                  <img id="pokeball" data-layer="${layerNumber}" data-pokemon="${
                 pokemon.pokedexId
-              }" src="${
-                capturedPokemon.some((p) => p.pokedexId === pokemon.pokedexId)
-                  ? "assets/icons/pokeball-rouge.svg"
-                  : "assets/icons/pokeball-gray.svg"
-              }">
-                <p>${pokemon.name}</p>
+              }" data-pokeball="pokeball" src="assets/icons/pokeball.png">
+                  <img id="superball" data-layer="${layerNumber}" data-pokemon="${
+                pokemon.pokedexId
+              }" data-pokeball="superball" src="assets/icons/superball.png">
+                  <img id="hyperball" data-layer="${layerNumber}" data-pokemon="${
+                pokemon.pokedexId
+              }" data-pokeball="hyperball" src="assets/icons/hyperball.png">
+                </div>
               </div>`
             )
             .openPopup();
@@ -236,8 +250,22 @@ function createPokemons() {
   });
 }
 
-function catchPokemon(pokemonId, layerId) {
-  const captured = Math.random() > 0.5; // 50% de chance de capturer le pokémon
+function catchPokemon(pokemonId, layerId, pokeball) {
+  let captured; // 50% de chance de capturer le pokémon
+  switch (pokeball) {
+    case "pokeball":
+      captured = Math.random() > 0.75;
+      break;
+    case "superball":
+      captured = Math.random() > 0.66;
+      break;
+    case "hyperball":
+      captured = Math.random() > 0.5;
+      break;
+    default:
+      captured = Math.random() > 0.75;
+      break;
+  }
 
   if (captured) {
     // Si capturé, on ajoute le pokémon au tableau des pokémon capturés (localStorage)
@@ -266,6 +294,7 @@ function catchPokemon(pokemonId, layerId) {
       escapePopup.classList.add("escape-hidden");
     }, 1000);
   }
+
   // Fais disparaitre le pokémon
   const layer = getLayer(layerId);
   layer.clearLayers();
@@ -336,16 +365,19 @@ function showDetails(pokemonId, isPokedex, id) {
             }
           });
       });
-    });
 
-  if (isPokedex && id) {
-    releasePokemon(id);
-  }
+      if (isPokedex && id) {
+        releasePokemon(id, pokemon.name);
+      }
+    });
 }
 
-function releasePokemon(id) {
+function releasePokemon(id, name) {
   const release = document.getElementById("release");
   release.addEventListener("click", () => {
+    const message = document.getElementById("pokedex-release-message");
+    message.innerHTML = `Etes-vous sûr de vouloir relâcher ${name} ?`;
+
     const confirm = document.getElementById("pokedex-release");
     confirm.classList.remove("pokedex-release-hidden");
 
@@ -374,11 +406,26 @@ function initPage() {
     const capture = document.getElementById("capture");
     capture.classList.add("capture-hidden");
 
-    const pokeball = document.getElementById("pokeball");
-    const pokemonId = Number(pokeball.dataset.pokemon);
-    const layerId = Number(pokeball.dataset.layer);
-    pokeball.addEventListener("click", () => {
-      catchPokemon(pokemonId, layerId);
+    const bag = document.getElementById("bag");
+    bag.addEventListener("click", () => {
+      const bagMenu = document.getElementById("bag-menu");
+      bagMenu.classList.remove("bag-hidden");
+      const menu = document.getElementById("popup-menu");
+      menu.classList.add("menu-hidden");
+    });
+
+    let pokeballs = [];
+    pokeballs.push(document.getElementById("pokeball"));
+    pokeballs.push(document.getElementById("superball"));
+    pokeballs.push(document.getElementById("hyperball"));
+
+    pokeballs.forEach((p) => {
+      const pokemonId = Number(p.dataset.pokemon);
+      const layerId = Number(p.dataset.layer);
+      const pokeballType = Number(p.dataset.pokeball);
+      p.addEventListener("click", () => {
+        catchPokemon(pokemonId, layerId, pokeballType);
+      });
     });
   });
 

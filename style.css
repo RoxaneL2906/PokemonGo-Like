@@ -49,15 +49,22 @@ body {
   width: 100%;
 }
 
-.popup {
+#popup-menu,
+#bag-menu {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 1rem;
 }
 
-.popup img {
+#popup-menu #bag,
+#bag-menu img {
   width: 45px;
+  cursor: pointer;
+}
+
+#popup-menu #owned {
+  width: 25px;
   cursor: pointer;
 }
 
@@ -74,10 +81,6 @@ body {
   color: #2981ca;
   background-color: rgba(255, 120, 120, 0.9);
   padding: 0.7rem;
-}
-
-#pokedex {
-  z-index: 1100;
 }
 
 #pokedex-release {
@@ -99,8 +102,10 @@ body {
 
 .pokedex-hidden,
 .capture-hidden,
-.pokedex-release-hidden {
-  display: none;
+.pokedex-release-hidden,
+.bag-hidden,
+.menu-hidden {
+  display: none !important;
 }
 
 #capture-close,
@@ -168,6 +173,37 @@ body {
   display: flex;
   flex-direction: row;
   gap: 0.2rem;
+}
+
+#release {
+  color: white;
+  width: max-content;
+  font-weight: 900;
+  font-size: 20px;
+  margin-top: 5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.choice {
+  height: 90%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+#pokedex-release-yes,
+#pokedex-release-no {
+  background-color: red;
+  border-radius: 20px;
+  padding: 0.5rem;
+  color: white;
+  cursor: pointer;
+  font-size: 20px;
 }
 
 .pokemon p:nth-child(2) {
