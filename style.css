@@ -129,6 +129,12 @@ body {
   text-align: center;
 }
 
+.pokedex-elements {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .pokeDetail {
   display: flex;
   flex-direction: column;
@@ -154,6 +160,7 @@ body {
 #capture-evolution {
   display: flex;
   flex-direction: column;
+  align-items: center;
   margin: 0 1.5rem;
   max-height: 210px;
   overflow: auto;
@@ -163,6 +170,7 @@ body {
 .pokemon {
   background-color: #292929;
   height: 100%;
+  width: 230px;
   padding: 0.1rem;
   display: flex;
   flex-direction: column;
@@ -182,11 +190,20 @@ body {
   width: max-content;
   font-weight: 900;
   font-size: 20px;
-  margin-top: 5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   cursor: pointer;
+  margin-top: 32px;
+  padding: 5px;
+  background-color: rgba(40, 230, 40, 0.5);
+  border-radius: 20px;
+}
+
+#pokedex-release-message {
+  color: white;
+  text-align: center;
+}
+
+strong {
+  color: #2981ca;
 }
 
 .choice {
@@ -200,12 +217,19 @@ body {
 
 #pokedex-release-yes,
 #pokedex-release-no {
-  background-color: red;
   border-radius: 20px;
   padding: 0.5rem;
   color: white;
   cursor: pointer;
   font-size: 20px;
+}
+
+#pokedex-release-yes {
+  background-color: rgba(40, 230, 40, 0.5);
+}
+
+#pokedex-release-no {
+  background-color: rgba(255, 0, 0, 0.5);
 }
 
 .pokemon p:nth-child(2) {
@@ -393,6 +417,15 @@ body {
     justify-content: center;
     min-width: 40%;
     gap: 1rem;
+  }
+
+  .pokeDetail .picture {
+    height: 70px;
+  }
+
+  .types {
+    margin: 0;
+    padding: 0;
   }
 }
 

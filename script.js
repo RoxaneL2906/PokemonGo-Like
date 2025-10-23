@@ -376,7 +376,7 @@ function releasePokemon(id, name) {
   const release = document.getElementById("release");
   release.addEventListener("click", () => {
     const message = document.getElementById("pokedex-release-message");
-    message.innerHTML = `Etes-vous sûr de vouloir relâcher ${name} ?`;
+    message.innerHTML = `Etes-vous sûr de vouloir relâcher <strong> ${name} </strong> ?`;
 
     const confirm = document.getElementById("pokedex-release");
     confirm.classList.remove("pokedex-release-hidden");
