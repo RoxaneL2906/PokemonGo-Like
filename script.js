@@ -77,6 +77,22 @@ function getLayer(layerNumber) {
   }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+  const rulesPopUp = document.getElementById("rules-popup");
+  const okButton = document.getElementById("rules-button");
+  const connexionPopUp = document.getElementById("connexion");
+  // Affiche d’abord les règles
+  rulesPopUp.style.display = "flex";
+
+  if (connexionPopUp) connexionPopUp.style.display = "none";
+
+  okButton.addEventListener("click", () => {
+    // Quand on clique sur OK :
+    rulesPopUp.style.display = "none";
+    if (connexionPopUp) connexionPopUp.style.display = "flex";
+  });
+});
+
 // Fonction pour générer la carte
 function generateMap() {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
@@ -150,6 +166,107 @@ function createPokemons() {
     spawn = Math.floor(Math.random() * 5 + 1);
   }
 
+  // Layer des pokémon à modifier
+  let layerNumbers = [];
+  for (let i = 0; i < spawn; i++) {
+    if (isMobile) {
+      layerNumbers.push(Math.floor(Math.random() * 5 + 1));
+    } else {
+      layerNumbers.push(Math.floor(Math.random() * 20 + 1));
+    }
+  }
+
+  layerNumbers.forEach((layerNumber) => {
+    let layer = getLayer(layerNumber);
+
+    layer.clearLayers();
+
+    if (Math.random() > 0.25) {
+      const pokedexId = Math.floor(Math.random() * 898 + 1);
+
+      fetch(`https://pokebuildapi.fr/api/v1/pokemon/${pokedexId}`)
+        .then((response) => response.json())
+        .then((pokemon) => {
+          let myIcon;
+          if (!isMobile) {
+            myIcon = L.icon({
+              iconUrl: pokemon.sprite,
+              iconSize: [100, 100],
+              iconAnchor: [50, 50],
+              popupAnchor: [0, -30],
+            });
+          } else {
+            myIcon = L.icon({
+              iconUrl: pokemon.sprite,
+              iconSize: [75, 75],
+              iconAnchor: [37.5, 37.5],
+              popupAnchor: [0, -30],
+            });
+          }
+
+          let dividerWidth;
+          let dividerHeight;
+          if (isMobile) {
+            dividerWidth = 600;
+            dividerHeight = 2000;
+          } else {
+            dividerWidth = 800;
+            dividerHeight = 300;
+          }
+
+          const marker = new L.marker(
+            [
+              Math.random() > 0.5
+                ? lat + Math.random() / dividerWidth
+                : lat - Math.random() / dividerWidth,
+              Math.random() > 0.5
+                ? long + Math.random() / dividerHeight
+                : long - Math.random() / dividerHeight,
+            ],
+            { icon: myIcon }
+          );
+
+          marker.on("click", () => {
+            showDetails(pokemon.pokedexId);
+          });
+
+          marker
+            .bindPopup(
+              `<div class="popup">
+                <div id="popup-menu">
+                  <img id="bag" src="assets/icons/bag.png">
+                  <p>${pokemon.name}</p>
+                  <img id="owned" src="${
+                    capturedPokemon.some(
+                      (p) => p.pokedexId === pokemon.pokedexId
+                    )
+                      ? "assets/icons/pokeball-rouge.svg"
+                      : "assets/icons/pokeball-gray.svg"
+                  }">
+                </div>
+                <div id="bag-menu" class="bag-hidden">
+                  <img id="pokeball" data-layer="${layerNumber}" data-pokemon="${
+                pokemon.pokedexId
+              }" data-pokeball="pokeball" src="assets/icons/pokeball.png">
+                  <img id="superball" data-layer="${layerNumber}" data-pokemon="${
+                pokemon.pokedexId
+              }" data-pokeball="superball" src="assets/icons/superball.png">
+                  <img id="hyperball" data-layer="${layerNumber}" data-pokemon="${
+                pokemon.pokedexId
+              }" data-pokeball="hyperball" src="assets/icons/hyperball.png">
+                </div>
+              </div>`
+            )
+            .openPopup();
+
+          layer.addLayer(marker);
+          map.addLayer(layer);
+        });
+    }
+  });
+}
+
+function createPokestops() {
   // Layer des pokémon à modifier
   let layerNumbers = [];
   for (let i = 0; i < spawn; i++) {
@@ -417,12 +534,12 @@ function initPage() {
       });
 
       let balls = [];
-      const pokeballs = document.querySelectorAll("#pokeball")
-      pokeballs.forEach((b) => balls.push(b))
-      const superballs = document.querySelectorAll("#superball")
-      superballs.forEach((b) => balls.push(b))
-      const hyperballs = document.querySelectorAll("#hyperball")
-      hyperballs.forEach((b) => balls.push(b))
+      const pokeballs = document.querySelectorAll("#pokeball");
+      pokeballs.forEach((b) => balls.push(b));
+      const superballs = document.querySelectorAll("#superball");
+      superballs.forEach((b) => balls.push(b));
+      const hyperballs = document.querySelectorAll("#hyperball");
+      hyperballs.forEach((b) => balls.push(b));
 
       balls.forEach((b) => {
         const pokemonId = Number(b.dataset.pokemon);
@@ -477,17 +594,17 @@ function initPage() {
 
   // Boutons liés au computer
   const computerButton = document.getElementById("computer");
-  const computerPopup = document.getElementById("computer-popup");
-  const closeComputer = document.getElementById("close-computer");
-  const capturedList = document.getElementById("captured-list");
-
+  
   // Ouvrir le computer
   computerButton.addEventListener("click", () => {
+    const capturedList = document.getElementById("captured-list");
     // Récupère les pokémon du localStorage
     capturedList.innerHTML = "";
-
+    
+    const computerPopup = document.getElementById("computer-popup");
     if (capturedPokemon.length == 0) {
-      capturedList.innerHTML = "<p>Aucun pokémon capturé pour le moment.</p>";
+      computerPopup.innerHTML +=
+        "<div class='message'><p>Aucun pokémon capturé pour le moment.</p></div>";
     } else {
       loadComputerList();
     }
@@ -495,11 +612,13 @@ function initPage() {
     computerPopup.classList.remove("computer-hidden");
     const capture = document.getElementById("capture");
     capture.classList.add("capture-hidden");
-  });
 
-  // Fermer le PC Pokémon
-  closeComputer.addEventListener("click", () => {
-    computerPopup.classList.add("computer-hidden");
+    // Fermer le PC Pokémon
+    const closeComputer = document.getElementById("close-computer");
+    closeComputer.addEventListener("click", () => {
+      console.log("ça passe");
+      computerPopup.classList.add("computer-hidden");
+    });
   });
 }
 
