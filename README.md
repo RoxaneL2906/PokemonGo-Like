@@ -13,6 +13,12 @@ Pour jouer :
 -Activer la géolocalisation (-> Bibliothèque JS Leaflet) 
 -S'identifier avec un pseudo. 
 -Cliquer sur les pokémons. 
-Pour capturer : cliquer sur la pokéball à côté du nom du pokémon. 
+Pour capturer : cliquer sur le sac à côté du nom du pokémon, et choisissez une ball.
+Taux de capture : 
+-Pokeball : 1 chance sur 4. 
+-Superball : 1 chance sur 3. 
+-Hyperball : 1 chance sur 2. 
+
 -> Si le pokédex s'ouvre : Pokémon capturé ! 
 -> Si rien ne se passe : Le pokémon s'est enfuit.
+
