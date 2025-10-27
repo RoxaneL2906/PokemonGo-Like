@@ -1,89 +1,35 @@
 // Création de la carte avec Leaflet
 const map = L.map("map");
 
-let layerGroupPokemon1 = L.layerGroup();
-let layerGroupPokemon2 = L.layerGroup();
-let layerGroupPokemon3 = L.layerGroup();
-let layerGroupPokemon4 = L.layerGroup();
-let layerGroupPokemon5 = L.layerGroup();
-let layerGroupPokemon6 = L.layerGroup();
-let layerGroupPokemon7 = L.layerGroup();
-let layerGroupPokemon8 = L.layerGroup();
-let layerGroupPokemon9 = L.layerGroup();
-let layerGroupPokemon10 = L.layerGroup();
-let layerGroupPokemon11 = L.layerGroup();
-let layerGroupPokemon12 = L.layerGroup();
-let layerGroupPokemon13 = L.layerGroup();
-let layerGroupPokemon14 = L.layerGroup();
-let layerGroupPokemon15 = L.layerGroup();
-let layerGroupPokemon16 = L.layerGroup();
-let layerGroupPokemon17 = L.layerGroup();
-let layerGroupPokemon18 = L.layerGroup();
-let layerGroupPokemon19 = L.layerGroup();
-let layerGroupPokemon20 = L.layerGroup();
+const nbSpawnPointsMobile = 5;
+const nbSpawnPointsDesktop = 20;
+const maxSpawnMobile = 3;
+const maxSpawnDesktop = 6;
+const nbSpawnPokestopMobile = 1;
+const nbSpawnPokestopDesktop = 2;
+
+let pokemonLayerGroups = [];
+let pokestopLayerGroups = [];
 
 // Variables pour la position actuelle de l'utilisateur
 let lat = 0;
 let long = 0;
 let user = "";
-let sound = true;
 let userMarker;
+let sound = true;
 let capturedPokemon = [];
+let userBag;
 
+// Par défaut on est sur ordinateur
 let isMobile = false;
 
-function getLayer(layerNumber) {
-  switch (layerNumber) {
-    case 1:
-      return layerGroupPokemon1;
-    case 2:
-      return layerGroupPokemon2;
-    case 3:
-      return layerGroupPokemon3;
-    case 4:
-      return layerGroupPokemon4;
-    case 5:
-      return layerGroupPokemon5;
-    case 6:
-      return layerGroupPokemon6;
-    case 7:
-      return layerGroupPokemon7;
-    case 8:
-      return layerGroupPokemon8;
-    case 9:
-      return layerGroupPokemon9;
-    case 10:
-      return layerGroupPokemon10;
-    case 11:
-      return layerGroupPokemon11;
-    case 12:
-      return layerGroupPokemon12;
-    case 13:
-      return layerGroupPokemon13;
-    case 14:
-      return layerGroupPokemon14;
-    case 15:
-      return layerGroupPokemon15;
-    case 16:
-      return layerGroupPokemon16;
-    case 17:
-      return layerGroupPokemon17;
-    case 18:
-      return layerGroupPokemon18;
-    case 19:
-      return layerGroupPokemon19;
-    case 20:
-      return layerGroupPokemon20;
-  }
-}
-
+// Pop-Up règlement du jeu -> Fait disparaitre la pop-up connexion le temps d'accepter les règles
 document.addEventListener("DOMContentLoaded", function () {
   const rulesPopUp = document.getElementById("rules-popup");
   const okButton = document.getElementById("rules-button");
   const connexionPopUp = document.getElementById("connexion");
   // Affiche d’abord les règles
   rulesPopUp.style.display = "flex";
-
   if (connexionPopUp) connexionPopUp.style.display = "none";
 
   okButton.addEventListener("click", () => {
@@ -114,14 +60,18 @@ function onPosition(position_obj) {
   // Génère de nouveaux pokémon toutes les 5 secondes
   setInterval(createPokemons, 5000);
 
+  createPokestops();
+
   // Met à jour la position du joueur
   navigator.geolocation.watchPosition(updatePosition);
 }
 
+// Pour afficher la position actuelle avec un zoom à 18
 function showCurrentPosition() {
   map.setView([lat, long], 18);
 }
 
+// Met à jour la position du joueur quand il se déplace
 function updatePosition(position_obj) {
   lat = position_obj.coords.latitude;
   long = position_obj.coords.longitude;
@@ -129,6 +79,7 @@ function updatePosition(position_obj) {
   createPlayer();
 }
 
+// Créer le joueur // A CHANGER POUR CHOISIR SON PERSONNAGE
 function createPlayer() {
   const myIcon = L.icon({
     iconUrl: "assets/images/players/Roxanne_OD.png",
@@ -149,35 +100,49 @@ function createPlayer() {
   });
 }
 
+//
 function loadUserPokemons() {
   capturedPokemon = JSON.parse(localStorage.getItem("pokemons-" + user)) ?? [];
 }
 
+// 
+function loadUserBag() {
+  userBag = JSON.parse(localStorage.getItem("bag-" + user)) ?? {
+    pokeball: 0,
+    superball: 0,
+    hyperball: 0,
+  };
+}
+
+//
 function saveUserPokemons() {
   localStorage.setItem("pokemons-" + user, JSON.stringify(capturedPokemon));
 }
 
+//
+function saveUserBag() {
+  localStorage.setItem("bag-" + user, JSON.stringify(userBag));
+}
+
+
+//
 function createPokemons() {
-  // Détermine combien de pokémon seront générés de manière aléatoire (entre 1 et 5)
-  let spawn;
+  // Détermine combien de pokémon seront générés de manière aléatoire
+  let spawnPoints;
   if (isMobile) {
-    spawn = Math.floor(Math.random() * 2 + 1);
+    spawnPoints = Array.from(
+      { length: Math.floor(Math.random() * maxSpawnMobile) },
+      () => Math.floor(Math.random() * nbSpawnPointsMobile)
+    );
   } else {
-    spawn = Math.floor(Math.random() * 5 + 1);
+    spawnPoints = Array.from(
+      { length: Math.floor(Math.random() * maxSpawnDesktop) },
+      () => Math.floor(Math.random() * nbSpawnPointsDesktop)
+    );
   }
 
-  // Layer des pokémon à modifier
-  let layerNumbers = [];
-  for (let i = 0; i < spawn; i++) {
-    if (isMobile) {
-      layerNumbers.push(Math.floor(Math.random() * 5 + 1));
-    } else {
-      layerNumbers.push(Math.floor(Math.random() * 20 + 1));
-    }
-  }
-
-  layerNumbers.forEach((layerNumber) => {
-    let layer = getLayer(layerNumber);
+  spawnPoints.forEach((layerNumber) => {
+    let layer = pokemonLayerGroups[layerNumber];
 
     layer.clearLayers();
 
@@ -245,15 +210,24 @@ function createPokemons() {
                   }">
                 </div>
                 <div id="bag-menu" class="bag-hidden">
-                  <img id="pokeball" data-layer="${layerNumber}" data-pokemon="${
+                  <div>
+                    <img id="pokeball" data-layer="${layerNumber}" data-pokemon="${
                 pokemon.pokedexId
               }" data-pokeball="pokeball" src="assets/icons/pokeball.png">
-                  <img id="superball" data-layer="${layerNumber}" data-pokemon="${
+                    <p id="pokeball-nb"></p>
+                  </div>
+                  <div>
+                    <img id="superball" data-layer="${layerNumber}" data-pokemon="${
                 pokemon.pokedexId
               }" data-pokeball="superball" src="assets/icons/superball.png">
-                  <img id="hyperball" data-layer="${layerNumber}" data-pokemon="${
+                    <p id="superball-nb"></p>
+                  </div>
+                  <div>
+                    <img id="hyperball" data-layer="${layerNumber}" data-pokemon="${
                 pokemon.pokedexId
               }" data-pokeball="hyperball" src="assets/icons/hyperball.png">
+                    <p id="hyperball-nb"></p>
+                  </div>
                 </div>
               </div>`
             )
@@ -267,122 +241,125 @@ function createPokemons() {
 }
 
 function createPokestops() {
-  // Layer des pokémon à modifier
-  let layerNumbers = [];
-  for (let i = 0; i < spawn; i++) {
-    if (isMobile) {
-      layerNumbers.push(Math.floor(Math.random() * 5 + 1));
-    } else {
-      layerNumbers.push(Math.floor(Math.random() * 20 + 1));
-    }
+  let spawnPoints;
+  if (isMobile) {
+    spawnPoints = [...Array(nbSpawnPokestopMobile).keys()];
+  } else {
+    spawnPoints = [...Array(nbSpawnPokestopDesktop).keys()];
   }
 
-  layerNumbers.forEach((layerNumber) => {
-    let layer = getLayer(layerNumber);
-
+  spawnPoints.forEach((layerNumber) => {
+    let layer = pokestopLayerGroups[layerNumber];
     layer.clearLayers();
 
-    if (Math.random() > 0.25) {
-      const pokedexId = Math.floor(Math.random() * 898 + 1);
-
-      fetch(`https://pokebuildapi.fr/api/v1/pokemon/${pokedexId}`)
-        .then((response) => response.json())
-        .then((pokemon) => {
-          let myIcon;
-          if (!isMobile) {
-            myIcon = L.icon({
-              iconUrl: pokemon.sprite,
-              iconSize: [100, 100],
-              iconAnchor: [50, 50],
-              popupAnchor: [0, -30],
-            });
-          } else {
-            myIcon = L.icon({
-              iconUrl: pokemon.sprite,
-              iconSize: [75, 75],
-              iconAnchor: [37.5, 37.5],
-              popupAnchor: [0, -30],
-            });
-          }
-
-          let dividerWidth;
-          let dividerHeight;
-          if (isMobile) {
-            dividerWidth = 600;
-            dividerHeight = 2000;
-          } else {
-            dividerWidth = 800;
-            dividerHeight = 300;
-          }
-
-          const marker = new L.marker(
-            [
-              Math.random() > 0.5
-                ? lat + Math.random() / dividerWidth
-                : lat - Math.random() / dividerWidth,
-              Math.random() > 0.5
-                ? long + Math.random() / dividerHeight
-                : long - Math.random() / dividerHeight,
-            ],
-            { icon: myIcon }
-          );
-
-          marker.on("click", () => {
-            showDetails(pokemon.pokedexId);
-          });
-
-          marker
-            .bindPopup(
-              `<div class="popup">
-                <div id="popup-menu">
-                  <img id="bag" src="assets/icons/bag.png">
-                  <p>${pokemon.name}</p>
-                  <img id="owned" src="${
-                    capturedPokemon.some(
-                      (p) => p.pokedexId === pokemon.pokedexId
-                    )
-                      ? "assets/icons/pokeball-rouge.svg"
-                      : "assets/icons/pokeball-gray.svg"
-                  }">
-                </div>
-                <div id="bag-menu" class="bag-hidden">
-                  <img id="pokeball" data-layer="${layerNumber}" data-pokemon="${
-                pokemon.pokedexId
-              }" data-pokeball="pokeball" src="assets/icons/pokeball.png">
-                  <img id="superball" data-layer="${layerNumber}" data-pokemon="${
-                pokemon.pokedexId
-              }" data-pokeball="superball" src="assets/icons/superball.png">
-                  <img id="hyperball" data-layer="${layerNumber}" data-pokemon="${
-                pokemon.pokedexId
-              }" data-pokeball="hyperball" src="assets/icons/hyperball.png">
-                </div>
-              </div>`
-            )
-            .openPopup();
-
-          layer.addLayer(marker);
-          map.addLayer(layer);
-        });
+    let myIcon;
+    if (!isMobile) {
+      myIcon = L.icon({
+        iconUrl: "assets/icons/pokestop.png",
+        iconSize: [75, 75],
+        iconAnchor: [50, 50],
+        popupAnchor: [0, -30],
+      });
+    } else {
+      myIcon = L.icon({
+        iconUrl: "assets/icons/pokestop.png",
+        iconSize: [35, 35],
+        iconAnchor: [37.5, 37.5],
+        popupAnchor: [0, -30],
+      });
     }
+
+    let dividerWidth;
+    let dividerHeight;
+    if (isMobile) {
+      dividerWidth = 600;
+      dividerHeight = 2000;
+    } else {
+      dividerWidth = 800;
+      dividerHeight = 300;
+    }
+
+    const marker = new L.marker(
+      [
+        Math.random() > 0.5
+          ? lat + Math.random() / dividerWidth
+          : lat - Math.random() / dividerWidth,
+        Math.random() > 0.5
+          ? long + Math.random() / dividerHeight
+          : long - Math.random() / dividerHeight,
+      ],
+      { icon: myIcon }
+    );
+
+    marker.on("click", (e) => {
+      if (!e.target._icon.src.includes("pokestop-used")) {
+        userBag.pokeball = userBag.pokeball + 1 + Math.round(Math.random() * 2);
+        userBag.superball = userBag.superball + Math.round(Math.random() * 2);
+        userBag.hyperball = userBag.hyperball + Math.round(Math.random() * 2);
+
+        let usedIcon;
+        if (!isMobile) {
+          usedIcon = L.icon({
+            iconUrl: "assets/icons/pokestop-used.png",
+            iconSize: [75, 75],
+            iconAnchor: [50, 50],
+            popupAnchor: [0, -30],
+          });
+        } else {
+          usedIcon = L.icon({
+            iconUrl: "assets/icons/pokestop-used.png",
+            iconSize: [35, 35],
+            iconAnchor: [37.5, 37.5],
+            popupAnchor: [0, -30],
+          });
+        }
+
+        e.target.setIcon(usedIcon);
+
+        setTimeout(() => {
+          e.target.setIcon(myIcon);
+        }, 120000);
+
+        saveUserBag();
+      }
+    });
+
+    layer.addLayer(marker);
+    map.addLayer(layer);
   });
 }
 
 function catchPokemon(pokemonId, layerId, pokeball) {
-  let captured; // 50% de chance de capturer le pokémon
+  let captured;
+  let canCapture = false;
+
   switch (pokeball) {
     case "pokeball":
       captured = Math.random() > 0.75;
+      canCapture = userBag.pokeball > 0;
+      if (canCapture) userBag.pokeball--;
       break;
     case "superball":
       captured = Math.random() > 0.66;
+      canCapture = userBag.superball > 0;
+      if (canCapture) userBag.superball--;
       break;
     case "hyperball":
       captured = Math.random() > 0.5;
+      canCapture = userBag.hyperball > 0;
+      if (canCapture) userBag.hyperball--;
       break;
     default:
-      captured = Math.random() > 0.75;
+      canCapture = false;
+      captured = false;
       break;
   }
+
+  if (!canCapture) {
+    return;
+  }
+
+  saveUserBag();
 
   if (captured) {
     // Si capturé, on ajoute le pokémon au tableau des pokémon capturés (localStorage)
@@ -413,11 +390,10 @@ function catchPokemon(pokemonId, layerId, pokeball) {
   }
 
   // Fais disparaitre le pokémon
-  const layer = getLayer(layerId);
+  const layer = pokemonLayerGroups[layerId];
   layer.clearLayers();
 }
 
-//
 function showDetails(pokemonId, isPokedex, id) {
   let prefix;
   if (isPokedex) {
@@ -519,8 +495,24 @@ function releasePokemon(id, name) {
 }
 
 function initPage() {
+  // Init Pokemon et Pokédex layers
+  if (isMobile) {
+    for (let i = 0; i < nbSpawnPointsMobile; i++) {
+      pokemonLayerGroups.push(L.layerGroup());
+    }
+    for (let i = 0; i < nbSpawnPokestopMobile; i++) {
+      pokestopLayerGroups.push(L.layerGroup());
+    }
+  } else {
+    for (let i = 0; i < nbSpawnPointsDesktop; i++) {
+      pokemonLayerGroups.push(L.layerGroup());
+    }
+    for (let i = 0; i < nbSpawnPokestopDesktop; i++) {
+      pokestopLayerGroups.push(L.layerGroup());
+    }
+  }
+
   map.on("popupopen", () => {
-    console.log("ça passe");
     const capture = document.getElementById("capture");
     capture.classList.add("capture-hidden");
 
@@ -540,11 +532,17 @@ function initPage() {
       superballs.forEach((b) => balls.push(b));
       const hyperballs = document.querySelectorAll("#hyperball");
       hyperballs.forEach((b) => balls.push(b));
+      const nbPokeballs = document.querySelectorAll("#pokeball-nb");
+      nbPokeballs.forEach((b) => (b.innerHTML = userBag.pokeball));
+      const nbSuperballs = document.querySelectorAll("#superball-nb");
+      nbSuperballs.forEach((b) => (b.innerHTML = userBag.superball));
+      const nbHyperballs = document.querySelectorAll("#hyperball-nb");
+      nbHyperballs.forEach((b) => (b.innerHTML = userBag.hyperball));
 
       balls.forEach((b) => {
         const pokemonId = Number(b.dataset.pokemon);
         const layerId = Number(b.dataset.layer);
-        const pokeballType = Number(b.dataset.pokeball);
+        const pokeballType = b.dataset.pokeball;
         b.addEventListener("click", () => {
           catchPokemon(pokemonId, layerId, pokeballType);
         });
@@ -575,6 +573,7 @@ function initPage() {
     popup.classList.add("connexion-hide");
 
     loadUserPokemons();
+    loadUserBag();
   });
 
   // Musique d'ambiance en fond, lecture automatique avec possibilité de mettre en pause
@@ -594,13 +593,13 @@ function initPage() {
 
   // Boutons liés au computer
   const computerButton = document.getElementById("computer");
-  
+
   // Ouvrir le computer
   computerButton.addEventListener("click", () => {
     const capturedList = document.getElementById("captured-list");
     // Récupère les pokémon du localStorage
     capturedList.innerHTML = "";
-    
+
     const computerPopup = document.getElementById("computer-popup");
     if (capturedPokemon.length == 0) {
       computerPopup.innerHTML +=
@@ -666,6 +665,7 @@ function loadComputer(p) {
     });
 }
 
+// Définit à quel moment on est sur mobile
 function getMobileType() {
   const screenwidth = window.screen.width;
   if (screenwidth < 1200) {
@@ -673,8 +673,8 @@ function getMobileType() {
   }
 }
 
+// Bouton pour recentrer la map sur l'utilisateur
 function initGeolocationButton() {
-  // Bouton pour recentrer la map sur l'utilisateur
   const geolocationButton = document.getElementById("geolocation");
   geolocationButton.addEventListener("click", showCurrentPosition);
 }

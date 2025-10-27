@@ -92,8 +92,27 @@ body {
 
 #popup-menu #bag,
 #bag-menu img {
+  position: relative;
   width: 45px;
   cursor: pointer;
+}
+
+#bag-menu div {
+  position: relative;
+}
+
+#bag-menu #pokeball-nb,
+#bag-menu #superball-nb,
+#bag-menu #hyperball-nb {
+  position: absolute;
+  margin: 0;
+  padding: 0.125rem 0.5rem;
+  bottom: 0;
+  left: 25px;
+  background-color: red;
+  color: white;
+  border: 1px solid black;
+  border-radius: 20px;
 }
 
 #popup-menu #owned {
