@@ -5,8 +5,8 @@ const nbSpawnPointsMobile = 5;
 const nbSpawnPointsDesktop = 20;
 const maxSpawnMobile = 3;
 const maxSpawnDesktop = 6;
-const nbSpawnPokestopMobile = 1;
-const nbSpawnPokestopDesktop = 2;
+const nbSpawnPokestopMobile = 4;
+const nbSpawnPokestopDesktop = 3;
 
 let pokemonLayerGroups = [];
 let pokestopLayerGroups = [];
